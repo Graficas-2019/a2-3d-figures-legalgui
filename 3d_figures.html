@@ -9,16 +9,20 @@
 <script src="3d_figures.js"></script>
 
 <script type="text/javascript">
-          
+
 	$(document).ready(
 			function() {
-		        var canvas = document.getElementById("webglcanvas");
-			    var gl = initWebGL(canvas);
-		        initViewport(gl, canvas);
-		        initGL(canvas);
+        var canvas = document.getElementById("webglcanvas");
+			  var gl = initWebGL(canvas);
+		    initViewport(gl, canvas);
+		    initGL(canvas);
 				initShader(gl);
+
 				// TO DO: create and draw the figures
-				run(gl, []);
+        const pentagonalPyramid = createPyramid(gl, [-1.5 * $(canvas).width()/$(canvas).height(), 0, 0], [0.1, 1.0, 0.2]);
+        const dodecahedron = createDodecahedron(gl, [0, 0, 0], [-0.4, 1.0, 0.1], [0.0, 1.0, 0, 0]);
+        const octahedron = createOctahedron(gl, [+1.5 * $(canvas).width()/$(canvas).height(), 0, 0], [0, 1, 0]);
+        run(gl, [pentagonalPyramid, dodecahedron, octahedron]);
 			}
 	);
 

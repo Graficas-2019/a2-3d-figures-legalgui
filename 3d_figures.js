@@ -1,6 +1,6 @@
 var projectionMatrix;
 
-var shaderProgram, shaderVertexPositionAttribute, shaderVertexColorAttribute, 
+var shaderProgram, shaderVertexPositionAttribute, shaderVertexColorAttribute,
     shaderProjectionMatrixUniform, shaderModelViewMatrixUniform;
 
 var duration = 5000; // ms
@@ -8,7 +8,7 @@ var duration = 5000; // ms
 // Attributes: Input variables used in the vertex shader. Since the vertex shader is called on each vertex, these will be different every time the vertex shader is invoked.
 // Uniforms: Input variables for both the vertex and fragment shaders. These do not change values from vertex to vertex.
 // Varyings: Used for passing data from the vertex shader to the fragment shader. Represent information for which the shader can output different value for each vertex.
-var vertexShaderSource =    
+var vertexShaderSource =
     "    attribute vec3 vertexPos;\n" +
     "    attribute vec4 vertexColor;\n" +
     "    uniform mat4 modelViewMatrix;\n" +
@@ -27,7 +27,7 @@ var vertexShaderSource =
 // - highp for vertex positions,
 // - mediump for texture coordinates,
 // - lowp for colors.
-var fragmentShaderSource = 
+var fragmentShaderSource =
     "    precision lowp float;\n" +
     "    varying vec4 vColor;\n" +
     "    void main(void) {\n" +
@@ -39,10 +39,10 @@ function initWebGL(canvas)
     var gl = null;
     var msg = "Your browser does not support WebGL, " +
         "or it is not enabled by default.";
-    try 
+    try
     {
         gl = canvas.getContext("experimental-webgl");
-    } 
+    }
     catch (e)
     {
         msg = "Error creating WebGL Context!: " + e.toString();
@@ -54,22 +54,342 @@ function initWebGL(canvas)
         throw new Error(msg);
     }
 
-    return gl;        
+    return gl;
  }
 
-function initViewport(gl, canvas)
-{
-    gl.viewport(0, 0, canvas.width, canvas.height);
-}
+ function initViewport(gl, canvas) {
+   const width = $(window).width();
+   const height = $(window).height();
+   canvas.width = width;
+   canvas.height = height;
+   gl.viewport(0, 0, width, height);
+ }
 
-function initGL(canvas)
-{
-    // Create a project matrix with 45 degree field of view
-    projectionMatrix = mat4.create();
-    mat4.perspective(projectionMatrix, Math.PI / 4, canvas.width / canvas.height, 1, 10000);
-}
+ function initGL(canvas) {
+   // Create a project matrix with 45 degree field of view
+   const width = $(canvas).width();
+   const height = $(canvas).height();
+   projectionMatrix = mat4.create();
+   mat4.perspective(projectionMatrix, Math.PI / 4, width / height, 1, 100);
+   mat4.translate(projectionMatrix, projectionMatrix, [0, 0, -5]);
+ }
 
 // TO DO: Create the functions for each of the figures.
+
+///////////
+// PYRAMID
+///////////
+function createPyramid(gl, translation, rotationAxis) {
+
+  // Create the buffer
+  var vBuffer;
+  vBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+  transform = mat4.create();
+  mat4.rotateX(transform, transform, - Math.PI / 2);
+  mat4.scale(transform, transform, vec3.fromValues(0.5, 0.5, 0.5));
+
+  // Create the vertexes
+  var vertex_a = vec3.transformMat4(vec3.fromValues(0, 0, 1), vec3.fromValues(0, 0, 1), transform);
+  var vertex_b = vec3.transformMat4(vec3.fromValues(1, 0, 0), vec3.fromValues(1, 0, 0), transform);
+  var vertex_c = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5 ), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 1), Math.sin(Math.PI * 2 / 5 * 1), 0), transform);
+  var vertex_d = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 2), Math.sin(Math.PI * 2 / 5 * 2), 0), transform);
+  var vertex_e = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 3), Math.sin(Math.PI * 2 / 5 * 3), 0), transform);
+  var vertex_f = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 4), Math.sin(Math.PI * 2 / 5 * 4), 0), transform);
+
+  var verts = [];
+
+  // Push the vertex as variadic
+  verts.push(...vertex_a); verts.push(...vertex_b); verts.push(...vertex_c);
+  verts.push(...vertex_a); verts.push(...vertex_c); verts.push(...vertex_d);
+  verts.push(...vertex_a); verts.push(...vertex_d); verts.push(...vertex_e);
+  verts.push(...vertex_a); verts.push(...vertex_e); verts.push(...vertex_f);
+  verts.push(...vertex_a); verts.push(...vertex_f); verts.push(...vertex_b);
+  verts.push(...vertex_b); verts.push(...vertex_c); verts.push(...vertex_d);
+  verts.push(...vertex_d); verts.push(...vertex_e); verts.push(...vertex_f);
+  verts.push(...vertex_f); verts.push(...vertex_d); verts.push(...vertex_b);
+
+  var colors = [
+    [192 / 255, 192 / 255, 192 / 255, 1],
+    [255 / 255, 255 / 255, 255 / 255, 1],
+    [255 / 255, 255 / 255, 0 / 255, 1],
+    [0 / 255, 255 / 255, 255 / 255, 1],
+    [255 / 255, 0 / 255, 255 / 255, 1],
+    [128 / 255, 0 / 255, 128 / 255, 1]
+  ]
+
+  var vertices = [3,3,3,3,3,9]
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+  var cBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+
+  var vertexColors = [];
+  for (var i = 0; i < vertices.length; i++) {
+    for (var j = 0; j < vertices[i]; j++){
+      vertexColors.push(...colors[i]);
+    }
+  }
+
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+  var iBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
+  var indicesArray = [];
+
+  var newSize = verts.length / 3;
+  for (let i = 0; i < newSize; ++i) { indicesArray.push(i);}
+
+
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
+
+  var pyramid = {
+    nVerts: verts.length,
+    nColors: vertexColors.length,
+    nIndices: indicesArray.length,
+
+    buffer: vBuffer,
+    cBuffer: cBuffer,
+    indices: iBuffer,
+
+    vSize: 3,
+    colorSize: 4,
+
+    modelViewMatrix: mat4.create(),
+    primtype: gl.TRIANGLES,
+    currentTime: Date.now()
+  };
+
+  mat4.translate(pyramid.modelViewMatrix, pyramid.modelViewMatrix, translation);
+
+  pyramid.update = function () {
+    // Here we check time
+    var now = Date.now();
+    var time = now - this.currentTime;
+    this.currentTime = now;
+    mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, Math.PI * 2 * (time / duration), rotationAxis);
+  };
+
+  return pyramid;
+}
+
+
+///////////////
+/// OCTAHEDRON
+///////////////
+
+function createOctahedron(gl, translation, rotationAxis) {
+  const r = 0.5;
+
+  const vertices = [
+    [r, 0, 0], [0, r, 0], [-r, 0, 0],
+    [0, -r, 0], [0, 0, r], [0, 0, -r],
+  ];
+
+  const intersection = [
+    0, 1, 4,
+    1, 2, 4,
+    2, 3, 4,
+    0, 3, 4,
+    0, 1, 5,
+    1, 2, 5,
+    2, 3, 5,
+    0, 3, 5,
+  ];
+
+  const verts = [];
+  for (let i of intersection) { verts.push(...vertices[i]); }
+
+  const colors = [
+    [128 / 255, 0 / 255, 128 / 255, 1],
+    [0 / 255, 255 / 255, 100 / 255, 1],
+    [230 / 255, 255 / 255, 255 / 255, 1],
+    [255 / 255, 20 / 255, 200 / 255, 1],
+    [20 / 255, 20 / 255, 20 / 255, 1],
+    [100 / 255, 30 / 255, 255 / 255, 1],
+    [12 / 255, 255 / 255, 0 / 255, 1],
+    [192 / 255, 192 / 255, 192 / 255, 1],
+  ];
+
+  var vertex = [9,3,3,3,3,3,3,3]
+
+  const indicesArray = [];
+  for (let i = 0; i < intersection.length; ++i) {
+    indicesArray.push(i);
+  }
+
+  var i = 0;
+  var vertexColors = [];
+  for (var i = 0; i < vertex.length; i++) {
+    for (var j = 0; j < vertex[i]; j++)
+      vertexColors.push(...colors[i]);
+  }
+
+
+  var cBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+  var vBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+  var iBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
+
+
+  var dodecahedron = {
+    buffer: vBuffer, cBuffer: cBuffer, indices: iBuffer,
+    vSize: 3, nVerts: verts.length, colorSize: 4, nColors: vertexColors.length, nIndices: indicesArray.length,
+    primtype: gl.TRIANGLES, modelViewMatrix: mat4.create(), currentTime: Date.now()
+  };
+
+  mat4.translate(dodecahedron.modelViewMatrix, dodecahedron.modelViewMatrix, translation);
+
+  let differential = 0.01;
+  dodecahedron.update = function () {
+    var now = Date.now();
+    var time = now - this.currentTime;
+    this.currentTime = now;
+    mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, Math.PI * 2 * (time / duration), rotationAxis);
+    if (Math.abs(this.modelViewMatrix[13]) > 1.40) { differential = -differential; }
+    mat4.translate(this.modelViewMatrix, this.modelViewMatrix, vec3.fromValues(0, differential, 0));
+  };
+
+  return dodecahedron;
+}
+
+
+/////////////////
+/// DODECAHEDRON
+/////////////////
+
+function createDodecahedron(gl, translation, rotationAxis1, rotationAxis2) {
+  // Geometry form: https://wiki.mcneel.com/developer/scriptsamples/dodecahedron
+
+  const phi = (1.0 + Math.sqrt(5.0)) * 0.5
+  const a = 1 / phi
+  const b = 1 / (phi * phi)
+
+  const vertices = [
+    [0, 1, b],
+    [0, 1, -b],
+    [0, -1, b],
+    [0, -1, -b],
+    [1, b, 0],
+    [-1, b, 0],
+    [1, -b, 0],
+    [-1, -b, 0],
+    [a, a, a],
+    [-a, a, a],
+    [a, a, -a],
+    [-a, a, -a],
+    [a, -a, a],
+    [-a, -a, a],
+    [a, -a, -a],
+    [-a, -a, -a],
+    [b, 0, 1],
+    [-b, 0, 1],
+    [b, 0, -1],
+    [-b, 0, -1],
+  ];
+
+  const intersection = [
+    16, 17, 9, 9, 0, 8, 16, 9, 8,
+    17, 16, 12, 12, 2, 13, 17, 12, 13,
+    18, 19, 15, 15, 3, 14, 18, 15, 14,
+    19, 18, 10, 10, 1, 11, 19, 10, 11,
+    1, 0, 8, 8, 4, 10, 1, 8, 10,
+    0, 1, 11, 11, 5, 9, 0, 11, 9,
+    3, 2, 13, 13, 7, 15, 3, 13, 15,
+    2, 3, 14, 14, 6, 12, 2, 14, 12,
+    4, 6, 12, 12, 16, 8, 4, 12, 8,
+    6, 4, 10, 10, 18, 14, 6, 10, 14,
+    5, 7, 15, 15, 19, 11, 5, 15, 11,
+    7, 5, 9, 9, 17, 13, 7, 9, 13,
+  ];
+
+  const verts = [];
+
+  for (let i of intersection) {
+    verts.push(...vertices[i]);
+  }
+
+
+  var colors = [
+    [40 / 255, 255 / 255, 255 / 255, 1],
+    [20 / 255, 0 / 255, 255 / 255, 1],
+    [0 / 255, 0 / 255, 128 / 255, 1],
+    [0 / 255, 128 / 255, 0 / 255, 1],
+    [192 / 255, 192 / 255, 192 / 255, 1],
+
+    [0 / 255, 255 / 255, 0 / 255, 1],
+    [130 / 255, 0 / 255, 0 / 255, 1],
+    [192 / 255, 192 / 255, 192 / 255, 1],
+    [255 / 255, 255 / 255, 255 / 255, 1],
+    [0 / 255, 255 / 255, 0 / 255, 1],
+    [200 / 255, 0 / 255, 0 / 255, 1],
+    [255 / 255, 0 / 255, 255 / 255, 1],
+  ]
+  var vValues = [9,9,9,9,9,9,9,9,9,9,9,9]
+
+  const indicesArray = [];
+  for (let i = 0; i < intersection.length; ++i) {
+    indicesArray.push(i);
+  }
+
+  var vertexColors = [];
+  for (var i = 0; i < vValues.length; i++) {
+    for (var j = 0; j < vValues[i]; j++)
+      vertexColors.push(...colors[i]);
+  }
+
+  var cBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+  var vBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+  var iBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
+
+
+  var dodecahedron = {
+    nColors: vertexColors.length,
+    nIndices: indicesArray.length,
+    nVerts: verts.length,
+    cBuffer: cBuffer,
+    vSize: 3,
+
+    buffer: vBuffer,
+    indices: iBuffer,
+    colorSize: 4,
+    primtype: gl.TRIANGLES,
+    modelViewMatrix: mat4.create(),
+    currentTime: Date.now()
+  };
+
+  mat4.translate(dodecahedron.modelViewMatrix, dodecahedron.modelViewMatrix, translation);
+
+  dodecahedron.update = function () {
+    var now = Date.now();
+    var time = now - this.currentTime;
+    this.currentTime = now;
+    mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, Math.PI * 2 * (time / duration), rotationAxis2);
+    mat4.rotate(this.modelViewMatrix, this.modelViewMatrix, Math.PI * 2 * (time / duration), rotationAxis1);
+  };
+
+  return dodecahedron;
+}
+
+//////////////
+// END FIGURES
+//////////////
 
 function createShader(gl, str, type)
 {
@@ -111,7 +431,7 @@ function initShader(gl)
 
     shaderVertexColorAttribute = gl.getAttribLocation(shaderProgram, "vertexColor");
     gl.enableVertexAttribArray(shaderVertexColorAttribute);
-    
+
     shaderProjectionMatrixUniform = gl.getUniformLocation(shaderProgram, "projectionMatrix");
     shaderModelViewMatrixUniform = gl.getUniformLocation(shaderProgram, "modelViewMatrix");
 
@@ -120,7 +440,7 @@ function initShader(gl)
     }
 }
 
-function draw(gl, objs) 
+function draw(gl, objs)
 {
     // clear the background (with black)
     gl.clearColor(0.1, 0.1, 0.1, 1.0);
@@ -136,11 +456,11 @@ function draw(gl, objs)
         // connect up the shader parameters: vertex position, color and projection/model matrices
         // set up the buffers
         gl.bindBuffer(gl.ARRAY_BUFFER, obj.buffer);
-        gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vertSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shaderVertexPositionAttribute, obj.vSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, obj.colorBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, obj.cBuffer);
         gl.vertexAttribPointer(shaderVertexColorAttribute, obj.colorSize, gl.FLOAT, false, 0, 0);
-        
+
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.indices);
 
         gl.uniformMatrix4fv(shaderProjectionMatrixUniform, false, projectionMatrix);
@@ -156,7 +476,7 @@ function draw(gl, objs)
     }
 }
 
-function run(gl, objs) 
+function run(gl, objs)
 {
     // The window.requestAnimationFrame() method tells the browser that you wish to perform an animation and requests that the browser call a specified function to update an animation before the next repaint. The method takes a callback as an argument to be invoked before the repaint.
     requestAnimationFrame(function() { run(gl, objs); });
