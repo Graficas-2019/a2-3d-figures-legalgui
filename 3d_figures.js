@@ -79,36 +79,30 @@ function initWebGL(canvas)
 ///////////
 // PYRAMID
 ///////////
+
+// Get Vec3 configuration
+function getDefinedVec3(option){
+  return vec3.fromValues(Math.cos(Math.PI * 2 / 5 * option), Math.sin(Math.PI * 2 / 5 * option), 0)
+}
+
 function createPyramid(gl, translation, rotationAxis) {
 
-  // Create the buffer
-  var vBuffer;
-  vBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
   transform = mat4.create();
   mat4.rotateX(transform, transform, - Math.PI / 2);
   mat4.scale(transform, transform, vec3.fromValues(0.5, 0.5, 0.5));
 
-  // Create the vertexes
+  // Specify fundamental structure
   var vertex_a = vec3.transformMat4(vec3.fromValues(0, 0, 1), vec3.fromValues(0, 0, 1), transform);
   var vertex_b = vec3.transformMat4(vec3.fromValues(1, 0, 0), vec3.fromValues(1, 0, 0), transform);
-  var vertex_c = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5 ), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 1), Math.sin(Math.PI * 2 / 5 * 1), 0), transform);
-  var vertex_d = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 2), Math.sin(Math.PI * 2 / 5 * 2), 0), transform);
-  var vertex_e = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 3), Math.sin(Math.PI * 2 / 5 * 3), 0), transform);
-  var vertex_f = vec3.transformMat4(vec3.fromValues(Math.cos(Math.PI * 2 / 5), Math.sin(Math.PI * 2 / 5), 0), vec3.fromValues(Math.cos(Math.PI * 2 / 5 * 4), Math.sin(Math.PI * 2 / 5 * 4), 0), transform);
+  var vertex_c = vec3.transformMat4(getDefinedVec3(1), getDefinedVec3(1), transform);
+  var vertex_d = vec3.transformMat4(getDefinedVec3(1), getDefinedVec3(2), transform);
+  var vertex_e = vec3.transformMat4(getDefinedVec3(1), getDefinedVec3(3), transform);
+  var vertex_f = vec3.transformMat4(getDefinedVec3(1), getDefinedVec3(4), transform);
 
-  var verts = [];
+  // vValues
+  var vValues = [3,3,3,3,3,9]
 
-  // Push the vertex as variadic
-  verts.push(...vertex_a); verts.push(...vertex_b); verts.push(...vertex_c);
-  verts.push(...vertex_a); verts.push(...vertex_c); verts.push(...vertex_d);
-  verts.push(...vertex_a); verts.push(...vertex_d); verts.push(...vertex_e);
-  verts.push(...vertex_a); verts.push(...vertex_e); verts.push(...vertex_f);
-  verts.push(...vertex_a); verts.push(...vertex_f); verts.push(...vertex_b);
-  verts.push(...vertex_b); verts.push(...vertex_c); verts.push(...vertex_d);
-  verts.push(...vertex_d); verts.push(...vertex_e); verts.push(...vertex_f);
-  verts.push(...vertex_f); verts.push(...vertex_d); verts.push(...vertex_b);
-
+  // RGB Colors and Alpha
   var colors = [
     [192 / 255, 192 / 255, 192 / 255, 1],
     [255 / 255, 255 / 255, 255 / 255, 1],
@@ -118,32 +112,43 @@ function createPyramid(gl, translation, rotationAxis) {
     [128 / 255, 0 / 255, 128 / 255, 1]
   ]
 
-  var vertices = [3,3,3,3,3,9]
+  // Push to vector
+  var verts = [];
+  verts.push(...vertex_a); verts.push(...vertex_b); verts.push(...vertex_c);
+  verts.push(...vertex_a); verts.push(...vertex_c); verts.push(...vertex_d);
+  verts.push(...vertex_a); verts.push(...vertex_d); verts.push(...vertex_e);
+  verts.push(...vertex_a); verts.push(...vertex_e); verts.push(...vertex_f);
+  verts.push(...vertex_a); verts.push(...vertex_f); verts.push(...vertex_b);
+  verts.push(...vertex_b); verts.push(...vertex_c); verts.push(...vertex_d);
+  verts.push(...vertex_d); verts.push(...vertex_e); verts.push(...vertex_f);
+  verts.push(...vertex_f); verts.push(...vertex_d); verts.push(...vertex_b);
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-
-  var cBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-
+  // Push to vector
   var vertexColors = [];
-  for (var i = 0; i < vertices.length; i++) {
-    for (var j = 0; j < vertices[i]; j++){
-      vertexColors.push(...colors[i]);
-    }
+  for (var i = 0; i < vValues.length; i++) {
+    for (var j = 0; j < vValues[i]; j++) vertexColors.push(...colors[i]);
   }
 
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
-
-  var iBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
+  // Push to vector
   var indicesArray = [];
-
   var newSize = verts.length / 3;
   for (let i = 0; i < newSize; ++i) { indicesArray.push(i);}
 
+  //Buffer creation
+  var vBuffer = gl.createBuffer();
+  var cBuffer = gl.createBuffer();
+  var iBuffer = gl.createBuffer();
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
 
+  // Pyramid object
   var pyramid = {
     nVerts: verts.length,
     nColors: vertexColors.length,
@@ -180,27 +185,17 @@ function createPyramid(gl, translation, rotationAxis) {
 ///////////////
 
 function createOctahedron(gl, translation, rotationAxis) {
-  const r = 0.5;
 
+  // Specify fundamental structure
   const vertices = [
-    [r, 0, 0], [0, r, 0], [-r, 0, 0],
-    [0, -r, 0], [0, 0, r], [0, 0, -r],
+    [0.5, 0, 0], [0, 0.5, 0], [-0.5, 0, 0],
+    [0, -0.5, 0], [0, 0, 0.5], [0, 0, -0.5],
   ];
 
-  const intersection = [
-    0, 1, 4,
-    1, 2, 4,
-    2, 3, 4,
-    0, 3, 4,
-    0, 1, 5,
-    1, 2, 5,
-    2, 3, 5,
-    0, 3, 5,
-  ];
+  // vValues
+  var vValues = [9,3,3,3,3,3,3,3]
 
-  const verts = [];
-  for (let i of intersection) { verts.push(...vertices[i]); }
-
+  // RGB Colors and Alpha
   const colors = [
     [128 / 255, 0 / 255, 128 / 255, 1],
     [0 / 255, 255 / 255, 100 / 255, 1],
@@ -212,44 +207,62 @@ function createOctahedron(gl, translation, rotationAxis) {
     [192 / 255, 192 / 255, 192 / 255, 1],
   ];
 
-  var vertex = [9,3,3,3,3,3,3,3]
+  // Vertex intersection
+  const intersection = [
+    0, 1, 4, 1, 2, 4, 2, 3, 4,
+    0, 3, 4, 0, 1, 5, 1, 2, 5,
+    2, 3, 5, 0, 3, 5,
+  ];
 
+  // Push to vector
+  const verts = [];
+  for (let i of intersection) { verts.push(...vertices[i]); }
+
+  // Push to vector
   const indicesArray = [];
-  for (let i = 0; i < intersection.length; ++i) {
-    indicesArray.push(i);
-  }
+  for (let i = 0; i < intersection.length; ++i) { indicesArray.push(i); }
 
-  var i = 0;
+  // Push to vector
   var vertexColors = [];
-  for (var i = 0; i < vertex.length; i++) {
-    for (var j = 0; j < vertex[i]; j++)
-      vertexColors.push(...colors[i]);
+  for (var i = 0; i < vValues.length; i++) {
+    for (var j = 0; j < vValues[i]; j++) vertexColors.push(...colors[i]);
   }
 
 
+  // Buffer creation
   var cBuffer = gl.createBuffer();
+  var vBuffer = gl.createBuffer();
+  var iBuffer = gl.createBuffer();
+
   gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
 
-  var vBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
-  var iBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
 
 
-  var dodecahedron = {
-    buffer: vBuffer, cBuffer: cBuffer, indices: iBuffer,
-    vSize: 3, nVerts: verts.length, colorSize: 4, nColors: vertexColors.length, nIndices: indicesArray.length,
-    primtype: gl.TRIANGLES, modelViewMatrix: mat4.create(), currentTime: Date.now()
+  // Octahedron object
+  var octahedron = {
+    buffer: vBuffer,
+    cBuffer: cBuffer,
+    indices: iBuffer,
+    vSize: 3,
+    nVerts: verts.length,
+    colorSize: 4,
+    nColors: vertexColors.length,
+    nIndices: indicesArray.length,
+    primtype: gl.TRIANGLES,
+    modelViewMatrix: mat4.create(),
+    currentTime: Date.now()
   };
 
-  mat4.translate(dodecahedron.modelViewMatrix, dodecahedron.modelViewMatrix, translation);
+  mat4.translate(octahedron.modelViewMatrix, octahedron.modelViewMatrix, translation);
 
   let differential = 0.01;
-  dodecahedron.update = function () {
+  octahedron.update = function () {
     var now = Date.now();
     var time = now - this.currentTime;
     this.currentTime = now;
@@ -258,7 +271,7 @@ function createOctahedron(gl, translation, rotationAxis) {
     mat4.translate(this.modelViewMatrix, this.modelViewMatrix, vec3.fromValues(0, differential, 0));
   };
 
-  return dodecahedron;
+  return octahedron;
 }
 
 
@@ -266,99 +279,85 @@ function createOctahedron(gl, translation, rotationAxis) {
 /// DODECAHEDRON
 /////////////////
 
+
+// Function to get the ratio
+function getR(x){
+  return 1/(Math.pow(((1.0 + Math.sqrt(5.0)) * 0.5),x))
+}
+
 function createDodecahedron(gl, translation, rotationAxis1, rotationAxis2) {
-  // Geometry form: https://wiki.mcneel.com/developer/scriptsamples/dodecahedron
 
-  const phi = (1.0 + Math.sqrt(5.0)) * 0.5
-  const a = 1 / phi
-  const b = 1 / (phi * phi)
-
+  // Specify fundamental structure
   const vertices = [
-    [0, 1, b],
-    [0, 1, -b],
-    [0, -1, b],
-    [0, -1, -b],
-    [1, b, 0],
-    [-1, b, 0],
-    [1, -b, 0],
-    [-1, -b, 0],
-    [a, a, a],
-    [-a, a, a],
-    [a, a, -a],
-    [-a, a, -a],
-    [a, -a, a],
-    [-a, -a, a],
-    [a, -a, -a],
-    [-a, -a, -a],
-    [b, 0, 1],
-    [-b, 0, 1],
-    [b, 0, -1],
-    [-b, 0, -1],
+    [0, 1, getR(2)], [0, 1, -getR(2)], [0, -1, getR(2)],
+    [0, -1, -getR(2)], [1, getR(2), 0], [-1, getR(2), 0],
+    [1, -getR(2), 0], [-1, -getR(2), 0], [getR(1), getR(1), getR(1)],
+    [-getR(1), getR(1), getR(1)], [getR(1), getR(1), -getR(1)],
+    [-getR(1), getR(1), -getR(1)], [getR(1), -getR(1), getR(1)],
+    [-getR(1), -getR(1), getR(1)], [getR(1), -getR(1), -getR(1)],
+    [-getR(1), -getR(1), -getR(1)], [getR(2), 0, 1],
+    [-getR(2), 0, 1], [getR(2), 0, -1],[-getR(2), 0, -1],
   ];
 
+  // vValues
+  var vValues = [9,9,9,9,9,9,9,9,9,9,9,9]
+
+  // RGB Colors and Alpha
+  var colors = [
+    [40 / 255, 255 / 255, 255 / 255, 1],[20 / 255, 0 / 255, 255 / 255, 1],
+    [0 / 255, 0 / 255, 128 / 255, 1], [0 / 255, 128 / 255, 0 / 255, 1],
+    [192 / 255, 192 / 255, 192 / 255, 1], [0 / 255, 255 / 255, 0 / 255, 1],
+    [130 / 255, 0 / 255, 0 / 255, 1], [192 / 255, 192 / 255, 192 / 255, 1],
+    [255 / 255, 255 / 255, 255 / 255, 1], [0 / 255, 255 / 255, 0 / 255, 1],
+    [200 / 255, 0 / 255, 0 / 255, 1], [255 / 255, 0 / 255, 255 / 255, 1],
+  ]
+
+  // Vertex intersection
   const intersection = [
-    16, 17, 9, 9, 0, 8, 16, 9, 8,
-    17, 16, 12, 12, 2, 13, 17, 12, 13,
-    18, 19, 15, 15, 3, 14, 18, 15, 14,
-    19, 18, 10, 10, 1, 11, 19, 10, 11,
-    1, 0, 8, 8, 4, 10, 1, 8, 10,
-    0, 1, 11, 11, 5, 9, 0, 11, 9,
-    3, 2, 13, 13, 7, 15, 3, 13, 15,
-    2, 3, 14, 14, 6, 12, 2, 14, 12,
-    4, 6, 12, 12, 16, 8, 4, 12, 8,
-    6, 4, 10, 10, 18, 14, 6, 10, 14,
-    5, 7, 15, 15, 19, 11, 5, 15, 11,
-    7, 5, 9, 9, 17, 13, 7, 9, 13,
+    16, 17, 9, 9, 0, 8, 16, 9, 8, 17, 16, 12, 12, 2, 13, 17, 12, 13,
+    18, 19, 15, 15, 3, 14, 18, 15, 14, 19, 18, 10, 10, 1, 11, 19, 10, 11,
+    1, 0, 8, 8, 4, 10, 1, 8, 10, 0, 1, 11, 11, 5, 9, 0, 11, 9,
+    3, 2, 13, 13, 7, 15, 3, 13, 15, 2, 3, 14, 14, 6, 12, 2, 14, 12,
+    4, 6, 12, 12, 16, 8, 4, 12, 8, 6, 4, 10, 10, 18, 14, 6, 10, 14,
+    5, 7, 15, 15, 19, 11, 5, 15, 11, 7, 5, 9, 9, 17, 13, 7, 9, 13,
   ];
 
+  // Push to vector
   const verts = [];
-
   for (let i of intersection) {
     verts.push(...vertices[i]);
   }
 
-
-  var colors = [
-    [40 / 255, 255 / 255, 255 / 255, 1],
-    [20 / 255, 0 / 255, 255 / 255, 1],
-    [0 / 255, 0 / 255, 128 / 255, 1],
-    [0 / 255, 128 / 255, 0 / 255, 1],
-    [192 / 255, 192 / 255, 192 / 255, 1],
-
-    [0 / 255, 255 / 255, 0 / 255, 1],
-    [130 / 255, 0 / 255, 0 / 255, 1],
-    [192 / 255, 192 / 255, 192 / 255, 1],
-    [255 / 255, 255 / 255, 255 / 255, 1],
-    [0 / 255, 255 / 255, 0 / 255, 1],
-    [200 / 255, 0 / 255, 0 / 255, 1],
-    [255 / 255, 0 / 255, 255 / 255, 1],
-  ]
-  var vValues = [9,9,9,9,9,9,9,9,9,9,9,9]
-
+  // Push to vector
   const indicesArray = [];
   for (let i = 0; i < intersection.length; ++i) {
     indicesArray.push(i);
   }
 
+  // Push to vector
   var vertexColors = [];
   for (var i = 0; i < vValues.length; i++) {
     for (var j = 0; j < vValues[i]; j++)
       vertexColors.push(...colors[i]);
   }
 
+  // Buffer creation
   var cBuffer = gl.createBuffer();
+  var vBuffer = gl.createBuffer();
+  var iBuffer = gl.createBuffer();
+
+  // Buffer binding
   gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexColors), gl.STATIC_DRAW);
 
-  var vBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
 
-  var iBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, iBuffer);
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indicesArray), gl.STATIC_DRAW);
 
 
+  // Dodecahedron object
   var dodecahedron = {
     nColors: vertexColors.length,
     nIndices: indicesArray.length,
